@@ -6,6 +6,7 @@ import './User.css'; // We'll create this file for styling
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome component
 import { faTrashAlt, faPencilAlt, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
+import { debounce } from 'lodash'; // Import debounce
 import Draggable from 'react-draggable'; // Import Draggable
 
 
@@ -60,14 +61,6 @@ const User = () => {
         }
       };
       fetchWhiteboardObjects();
-      let checkAllLoaded = () => {
-        for (let square of squares) {
-          if (square.data === null) {
-            fetchWhiteboardObjects();
-            break;
-          }
-        }
-      }
     }
   }, [isAuthenticated, idToken, selectedWhiteboard]);
 
@@ -144,21 +137,33 @@ const User = () => {
         }
       };
 
+      const saveSquareResize = debounce(async (id, newWidth, newHeight, selectedWhiteboard, idToken) => {
+        const square = squares.find((square) => square.id === id);
+        if (square) {
+          const { updateWhiteboardObject } = WhiteboardObjectService();
+          try {
+            await updateWhiteboardObject(
+              id,
+              {
+                whiteboardId: selectedWhiteboard,
+                data: JSON.stringify({ width: newWidth, height: newHeight }),
+                posX: square.posX,
+                posY: square.posY,
+              },
+              idToken
+            );
+          } catch (error) {
+            console.error('Failed to resize square', error);
+          }
+        }
+      }, 300); // 300ms debounce delay      
+    
+
       const handleResizeSquare = async (id, newWidth, newHeight) => {
         setSquares(
             squares.map((square) => (square.id === id ? { ...square, data: {width: newWidth, height: newHeight} } : square))
           );
-          const square = squares.find((square) => square.id === id);
-        if (square) {
-            const { updateWhiteboardObject } = WhiteboardObjectService();
-            try {
-                await updateWhiteboardObject(id, 
-                    { whiteboardId: selectedWhiteboard, data: JSON.stringify({width: newWidth, height: newHeight}), posX: square.posX, posY: square.posY },
-                     idToken);
-            } catch {
-                console.error('Failed to resize square');
-            }
-        }
+        saveSquareResize(id, newWidth, newHeight, selectedWhiteboard, idToken);
       };
 
         const changePosition = async (e,data,id) => {
