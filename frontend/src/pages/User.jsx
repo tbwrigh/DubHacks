@@ -1,10 +1,12 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 import WhiteboardService from '../services/WhiteboardService'; // Import the WhiteboardService
+import WhiteboardObjectService from '../services/WhiteboardObjectService';
 import './User.css'; // We'll create this file for styling
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome component
 import { faTrashAlt, faPencilAlt, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
+import Draggable from 'react-draggable'; // Import Draggable
 
 
 const User = () => {
@@ -13,6 +15,8 @@ const User = () => {
   const [whiteboards, setWhiteboards] = useState([]);
   const [editingWhiteboard, setEditingWhiteboard] = useState(null); // Track which whiteboard is being edited
   const [newWhiteboardName, setNewWhiteboardName] = useState(''); // New whiteboard name state
+  const [selectedWhiteboard, setSelectedWhiteboard] = useState(null); // Selected whiteboard state
+  const [squares, setSquares] = useState([]); // Track added squares
   const dialogRef = useRef(null); // Reference to the <dialog> element
 
   useEffect(() => {
@@ -43,6 +47,29 @@ const User = () => {
       fetchWhiteboards();
     }
   }, [isAuthenticated, idToken]);
+
+  useEffect(() => {
+    if (isAuthenticated && idToken && selectedWhiteboard) {
+      const fetchWhiteboardObjects = async () => {
+        const { getAllWhiteboardObjects } = WhiteboardObjectService();
+        try {
+          const fetchedSquares = await getAllWhiteboardObjects(selectedWhiteboard, idToken);
+          setSquares(fetchedSquares.map((square) => ({ ...square, data: JSON.parse(square.data) })));
+        } catch {
+            setSquares([]);
+        }
+      };
+      fetchWhiteboardObjects();
+      let checkAllLoaded = () => {
+        for (let square of squares) {
+          if (square.data === null) {
+            fetchWhiteboardObjects();
+            break;
+          }
+        }
+      }
+    }
+  }, [isAuthenticated, idToken, selectedWhiteboard]);
 
   const handleLogout = () => {
     logout({ returnTo: window.location.origin });
@@ -105,6 +132,52 @@ const User = () => {
         setWhiteboards(whiteboards.filter((whiteboard) => whiteboard.id !== id));
     };
 
+    const handleAddSquare = async () => {
+        const { createWhiteboardObject } = WhiteboardObjectService();
+        try {
+            let newSquare = await createWhiteboardObject(
+                { whiteboardId: selectedWhiteboard, posX: 0, posY: 0, data: JSON.stringify({width: 100, height: 100}) }, idToken);
+            newSquare.data = JSON.parse(newSquare.data);
+            setSquares([...squares, newSquare]);
+        } catch {
+            console.error('Failed to add square');
+        }
+      };
+
+      const handleResizeSquare = async (id, newWidth, newHeight) => {
+        setSquares(
+            squares.map((square) => (square.id === id ? { ...square, data: {width: newWidth, height: newHeight} } : square))
+          );
+          const square = squares.find((square) => square.id === id);
+        if (square) {
+            const { updateWhiteboardObject } = WhiteboardObjectService();
+            try {
+                await updateWhiteboardObject(id, 
+                    { whiteboardId: selectedWhiteboard, data: JSON.stringify({width: newWidth, height: newHeight}), posX: square.posX, posY: square.posY },
+                     idToken);
+            } catch {
+                console.error('Failed to resize square');
+            }
+        }
+      };
+
+        const changePosition = async (e,data,id) => {
+            setSquares(
+                squares.map((square) => (square.id === id ? { ...square, posX: data.x, posY: data.y } : square))
+              );
+            const square = squares.find((square) => square.id === id);
+
+            if (square) {
+                const { updateWhiteboardObject } = WhiteboardObjectService();
+                try {
+                    await updateWhiteboardObject(id, 
+                        { whiteboardId: selectedWhiteboard, posX: data.x, posY: data.y, data: JSON.stringify(square.data) }, idToken);
+                } catch {
+                    console.error('Failed to update square position');
+                }
+            }
+        }
+
   return (
     <div className="user-page">
       <aside className="sidebar">
@@ -114,7 +187,7 @@ const User = () => {
             {whiteboards.length > 0 ? (
               <ul>
                 {whiteboards.map((whiteboard) => (
-                  <li key={whiteboard.id} className="whiteboard">
+                  <li key={whiteboard.id} className="whiteboard" onClick={() => {setSelectedWhiteboard(whiteboard.id)}}>
                     {editingWhiteboard?.id === whiteboard.id ? (
                       <input 
                         type="text" 
@@ -169,7 +242,50 @@ const User = () => {
         </div>
       </aside>
       <main className="main-content">
-        <p>This is your user dashboard.</p>
+        { selectedWhiteboard ? (
+            <div>
+                <button className="fab-btn" onClick={handleAddSquare}>+</button>
+                {squares.map((square) => (
+                    <Draggable 
+                    key={square.id}
+                    cancel=".resize-handle"
+                    bounds=".main-content"
+                    onStop={(e, data)=>{changePosition(e,data,square.id)}}
+                    position={{ x: square.posX, y: square.posY }}
+                    >
+                        <div
+                        className="draggable-square"
+                        style={{ width: `${square.data.width}px`, height: `${square.data.height}px` }}
+                        >
+                        <div
+                            className="resize-handle"
+                            onMouseDown={(e) => {
+                            e.preventDefault();
+                            const startX = e.clientX;
+                            const startY = e.clientY;
+
+                            const handleMouseMove = (moveEvent) => {
+                                const newWidth = square.data.width + (moveEvent.clientX - startX);
+                                const newHeight = square.data.height + (moveEvent.clientY - startY);
+                                handleResizeSquare(square.id, newWidth, newHeight);
+                            };
+
+                            const handleMouseUp = () => {
+                                window.removeEventListener('mousemove', handleMouseMove);
+                                window.removeEventListener('mouseup', handleMouseUp);
+                            };
+
+                            window.addEventListener('mousemove', handleMouseMove);
+                            window.addEventListener('mouseup', handleMouseUp);
+                            }}
+                        />
+                        </div>
+                    </Draggable>
+                    ))}
+            </div>
+        ) : (
+            <p>Select a whiteboard to begin</p>
+        ) }
       </main>
 
 

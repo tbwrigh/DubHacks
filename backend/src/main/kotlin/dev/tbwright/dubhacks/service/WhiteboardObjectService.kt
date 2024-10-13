@@ -25,10 +25,10 @@ class WhiteboardObjectService(
                 ?: return null
 
         val newWBObject = WhiteboardObject(
+            whiteboard = whiteboard,
             posX = whiteboardObject.posX,
             posY = whiteboardObject.posY,
-            data = whiteboardObject.data,
-            whiteboard = whiteboard
+            data = whiteboardObject.data
         )
         return whiteboardObjectRepository.save(newWBObject)
     }
@@ -38,7 +38,7 @@ class WhiteboardObjectService(
         updatedWhiteboardObject: WhiteboardObjectDTO,
         userEmail: String
     ): WhiteboardObject? {
-        if (objectOwnedByUser(id, userEmail)) {
+        if (!objectOwnedByUser(id, userEmail)) {
             return null
         }
 

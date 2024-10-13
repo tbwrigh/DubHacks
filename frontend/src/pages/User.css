@@ -117,11 +117,57 @@
   
   .main-content {
     flex: 1;
-    padding: 20px;
+    padding: 0px;
     background-color: #f4f4f4;
+    position: relative; /* To position the floating button inside this area */
   }
   
+  .fab-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 36px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px !important;
+    z-index: 1000; /* Ensure the + button is always on top */
+  }
+  
+  .fab-btn:hover {
+    background-color: #45a049;
+  }
+
   .error-message {
     color: red;
+  }
+  
+
+  .draggable-square {
+    position: absolute;
+    background-color: lightblue;
+    border: 2px solid #007BFF;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+  }
+  
+  .resize-handle {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background-color: red;
+    right: 0;
+    bottom: 0;
+    cursor: se-resize;
   }
   
