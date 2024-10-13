@@ -76,7 +76,7 @@ const User = () => {
             {whiteboards.length > 0 ? (
               <ul>
                 {whiteboards.map((whiteboard) => (
-                  <li key={whiteboard.id} className="whiteboard-item">
+                  <li key={whiteboard.id} className="whiteboard">
                     {whiteboard.name}
                   </li>
                 ))}
@@ -87,9 +87,10 @@ const User = () => {
           </div>
         </div>
         <div className="sidebar-bottom">
-          <img src={user?.picture} alt="User Profile" className="user-picture" />
-          <p>{user?.name}</p>
-          <button onClick={handleLogout} className="logout-btn">Log Out</button>
+            <div className="user-info">
+            <img src={user?.picture} alt="User Profile" />
+            </div>
+            <button onClick={handleLogout} className="logout-btn">Log Out</button>
         </div>
       </aside>
       <main className="main-content">
