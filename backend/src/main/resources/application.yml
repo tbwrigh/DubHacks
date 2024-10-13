@@ -1,0 +1,14 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://${SPRING_DATASOURCE_URL:localhost:5432/mydb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:mypassword}
+  jpa:
+    hibernate:
+      ddl-auto: update  # Automatically update the database schema
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect  # PostgreSQL dialect
+  sql:
+    init:
+      mode: always  # Ensure schema and data initialization
