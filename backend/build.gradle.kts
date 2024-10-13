@@ -27,9 +27,10 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin") // For Kotlin JSON serialization/deserialization
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.springframework.boot:spring-boot-starter-validation")
-	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
-	implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
-	implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")  // For parsing JWT
+	implementation("org.springframework.boot:spring-boot-starter-security")
+	implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+
 
 	runtimeOnly("org.postgresql:postgresql")
 

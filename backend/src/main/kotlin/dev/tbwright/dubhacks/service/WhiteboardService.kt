@@ -3,29 +3,45 @@ package dev.tbwright.dubhacks.service
 import dev.tbwright.dubhacks.model.Whiteboard
 import dev.tbwright.dubhacks.repository.WhiteboardRepository
 import org.springframework.stereotype.Service
-import java.util.*
 
 @Service
-class WhiteboardService(private val whiteboardRepository: WhiteboardRepository) {
+class WhiteboardService(
+    private val whiteboardRepository: WhiteboardRepository,
+    private val userService: UserService
+) {
 
-    fun getAllWhiteboards(): List<Whiteboard> = whiteboardRepository.findAll()
-
-    fun getWhiteboardById(id: Long): Optional<Whiteboard> = whiteboardRepository.findById(id)
-
-    fun createWhiteboard(whiteboard: Whiteboard): Whiteboard = whiteboardRepository.save(whiteboard)
-
-    fun updateWhiteboard(id: Long, updatedWhiteboard: Whiteboard): Whiteboard? {
-        return whiteboardRepository.findById(id).map { existingWhiteboard ->
-                val whiteboardToUpdate = existingWhiteboard.copy(
-                name = updatedWhiteboard.name,
-                owner = updatedWhiteboard.owner
-        )
-            whiteboardRepository.save(whiteboardToUpdate)
-        }.orElse(null)
+    // Get all whiteboards for a specific user
+    fun getAllWhiteboardsByUser(userEmail: String): List<Whiteboard> {
+        return whiteboardRepository.findByOwner(userService.getOrCreateUser(userEmail))
     }
 
-    fun deleteWhiteboard(id: Long): Boolean {
-        return if (whiteboardRepository.existsById(id)) {
+    // Get a specific whiteboard by ID and ensure it belongs to the user
+    fun getWhiteboardByIdAndUserEmail(id: Long, userEmail: String): Whiteboard? {
+        return whiteboardRepository
+            .findByIdAndOwner(id, userService.getOrCreateUser(userEmail))
+            .orElse(null)
+    }
+
+    // Create a new whiteboard for a specific user
+    fun createWhiteboardForUser(whiteboard: Whiteboard, userEmail: String): Whiteboard {
+        val newWhiteboard = whiteboard.copy(owner = userService.getOrCreateUser(userEmail))
+        return whiteboardRepository.save(newWhiteboard)
+    }
+
+    // Update a whiteboard, only if it belongs to the user
+    fun updateWhiteboardForUser(id: Long, updatedWhiteboard: Whiteboard, userEmail: String): Whiteboard? {
+        val whiteboard = getWhiteboardByIdAndUserEmail(id, userEmail)
+        return if (whiteboard != null) {
+            val editedWhiteboard = whiteboard.copy(name = updatedWhiteboard.name)
+            whiteboardRepository.save(editedWhiteboard)
+        } else {
+            null
+        }
+    }
+
+    // Delete a whiteboard, only if it belongs to the user
+    fun deleteWhiteboardForUser(id: Long, userEmail: String): Boolean {
+        return if (getWhiteboardByIdAndUserEmail(id, userEmail) != null) {
             whiteboardRepository.deleteById(id)
             true
         } else {

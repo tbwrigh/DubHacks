@@ -12,3 +12,8 @@ spring:
   sql:
     init:
       mode: always  # Ensure schema and data initialization
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://YOUR_AUTH0_DOMAIN/    # Replace with your Auth0 domain
