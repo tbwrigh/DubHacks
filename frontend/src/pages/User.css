@@ -41,15 +41,37 @@
     list-style-type: none;
     padding: 0;
   }
-  
+
   .whiteboard {
     padding: 10px;
     background-color: #222;
     border: 1px solid #444;
     margin-bottom: 10px;
     cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
   
+  .whiteboard-actions {
+    display: flex;
+    gap: 10px; /* Space between the icons */
+  }
+  
+  .edit-icon, .delete-icon {
+    cursor: pointer;
+    color: white;
+  }
+  
+  .edit-icon:hover {
+    color: #4CAF50; /* Green for edit */
+  }
+  
+  .delete-icon:hover {
+    color: #ff4d4d; /* Red for delete */
+  }
+  
+
   .whiteboard:hover {
     background-color: #333;
   }

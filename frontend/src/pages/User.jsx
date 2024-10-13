@@ -3,10 +3,15 @@ import { useAuth0 } from '@auth0/auth0-react';
 import WhiteboardService from '../services/WhiteboardService'; // Import the WhiteboardService
 import './User.css'; // We'll create this file for styling
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome component
+import { faTrashAlt, faPencilAlt, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
+
+
 const User = () => {
   const { logout, user, isAuthenticated, getIdTokenClaims } = useAuth0();
   const [idToken, setIdToken] = useState(null);
   const [whiteboards, setWhiteboards] = useState([]);
+  const [editingWhiteboard, setEditingWhiteboard] = useState(null); // Track which whiteboard is being edited
   const [newWhiteboardName, setNewWhiteboardName] = useState(''); // New whiteboard name state
   const dialogRef = useRef(null); // Reference to the <dialog> element
 
@@ -67,6 +72,39 @@ const User = () => {
     }
   };
 
+    const handleEditWhiteboard = (whiteboardId, currentName) => {
+        setEditingWhiteboard({ id: whiteboardId, name: currentName });
+    };
+
+    const handleCancelEdit = () => {
+        setEditingWhiteboard(null); // Cancel editing and exit
+    };    
+
+    const handleSaveWhiteboard = async (whiteboardId) => {
+        const { updateWhiteboard } = WhiteboardService();
+        try {
+            await updateWhiteboard(whiteboardId, { name: editingWhiteboard.name }, idToken);
+        }catch {
+            console.error('Failed to update whiteboard');
+        }
+        setWhiteboards(whiteboards.map(wb => wb.id === whiteboardId ? { ...wb, name: editingWhiteboard.name } : wb));
+        setEditingWhiteboard(null); // Exit editing mode after saving
+    };
+
+    const handleNameChange = (event) => {
+        setEditingWhiteboard({ ...editingWhiteboard, name: event.target.value });
+      };    
+
+    const handleDeleteWhiteboard = async (id) => {
+        const { deleteWhiteboard } = WhiteboardService();
+        try {
+            await deleteWhiteboard(id, idToken);
+        } catch {
+            console.error('Failed to delete whiteboard');
+        }
+        setWhiteboards(whiteboards.filter((whiteboard) => whiteboard.id !== id));
+    };
+
   return (
     <div className="user-page">
       <aside className="sidebar">
@@ -77,7 +115,44 @@ const User = () => {
               <ul>
                 {whiteboards.map((whiteboard) => (
                   <li key={whiteboard.id} className="whiteboard">
-                    {whiteboard.name}
+                    {editingWhiteboard?.id === whiteboard.id ? (
+                      <input 
+                        type="text" 
+                        value={editingWhiteboard.name} 
+                        onChange={handleNameChange} 
+                      />
+                    ) : (
+                      whiteboard.name
+                    )}
+                    <div className="whiteboard-actions">
+                      {editingWhiteboard?.id === whiteboard.id ? (
+                        <>
+                          <FontAwesomeIcon 
+                            icon={faCheck} 
+                            className="save-icon" 
+                            onClick={() => handleSaveWhiteboard(whiteboard.id)} 
+                          />
+                          <FontAwesomeIcon 
+                            icon={faTimes} 
+                            className="cancel-icon" 
+                            onClick={handleCancelEdit} 
+                          />
+                        </>
+                      ) : (
+                        <>
+                          <FontAwesomeIcon 
+                            icon={faPencilAlt} 
+                            className="edit-icon" 
+                            onClick={() => handleEditWhiteboard(whiteboard.id, whiteboard.name)} 
+                          />
+                          <FontAwesomeIcon 
+                            icon={faTrashAlt} 
+                            className="delete-icon" 
+                            onClick={() => handleDeleteWhiteboard(whiteboard.id)} 
+                          />
+                        </>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
