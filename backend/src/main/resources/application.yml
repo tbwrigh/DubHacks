@@ -16,4 +16,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://YOUR_AUTH0_DOMAIN/    # Replace with your Auth0 domain
+          issuer-uri: https://dev-qr3ba0z0ebgps6fg.us.auth0.com/    # Replace with your Auth0 domain
+logging:
+  level:
+    org.springframework.security: DEBUG

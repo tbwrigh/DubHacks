@@ -9,35 +9,35 @@ const WhiteboardService = () => {
     const { authenticatedFetch } = ApiService();
 
   // Get all whiteboards for the authenticated user
-  const getAllWhiteboards = async () => {
+  const getAllWhiteboards = async (token) => {
     const url = `${API_BASE_URL}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'GET',
     });
   };
 
   // Create a new whiteboard
-  const createWhiteboard = async (whiteboard) => {
+  const createWhiteboard = async (whiteboard, token) => {
     const url = `${API_BASE_URL}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'POST',
       body: JSON.stringify(whiteboard),
     });
   };
 
   // Update an existing whiteboard
-  const updateWhiteboard = async (id, updatedWhiteboard) => {
+  const updateWhiteboard = async (id, updatedWhiteboard, token) => {
     const url = `${API_BASE_URL}/${id}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'PUT',
       body: JSON.stringify(updatedWhiteboard),
     });
   };
 
   // Delete a whiteboard
-  const deleteWhiteboard = async (id) => {
+  const deleteWhiteboard = async (id, token) => {
     const url = `${API_BASE_URL}/${id}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'DELETE',
     });
   };
@@ -51,3 +51,4 @@ const WhiteboardService = () => {
 };
 
 export default WhiteboardService;
+

@@ -10,35 +10,35 @@ const WhiteboardObjectService = () => {
 
 
   // Get all whiteboard objects for a specific whiteboard owned by the authenticated user
-  const getAllWhiteboardObjects = async (whiteboardId) => {
+  const getAllWhiteboardObjects = async (whiteboardId, token) => {
     const url = `${API_BASE_URL}/${whiteboardId}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'GET',
     });
   };
 
   // Create a new whiteboard object
-  const createWhiteboardObject = async (whiteboardObject) => {
+  const createWhiteboardObject = async (whiteboardObject, token) => {
     const url = `${API_BASE_URL}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'POST',
       body: JSON.stringify(whiteboardObject),
     });
   };
 
   // Update an existing whiteboard object
-  const updateWhiteboardObject = async (id, updatedWhiteboardObject) => {
+  const updateWhiteboardObject = async (id, updatedWhiteboardObject, token) => {
     const url = `${API_BASE_URL}/${id}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'PUT',
       body: JSON.stringify(updatedWhiteboardObject),
     });
   };
 
   // Delete a whiteboard object
-  const deleteWhiteboardObject = async (id) => {
+  const deleteWhiteboardObject = async (id, token) => {
     const url = `${API_BASE_URL}/${id}`;
-    return authenticatedFetch(url, {
+    return authenticatedFetch(url, token, {
       method: 'DELETE',
     });
   };

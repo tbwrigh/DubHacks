@@ -1,5 +1,6 @@
 package dev.tbwright.dubhacks.service
 
+import dev.tbwright.dubhacks.dto.WhiteboardObjectDTO
 import dev.tbwright.dubhacks.model.Whiteboard
 import dev.tbwright.dubhacks.model.WhiteboardObject
 import dev.tbwright.dubhacks.repository.WhiteboardObjectRepository
@@ -18,28 +19,34 @@ class WhiteboardObjectService(
         return whiteboardObjectRepository.findByWhiteboard(whiteboard)
     }
 
-    fun createWhiteboardObject(whiteboardObject: WhiteboardObject, userEmail: String): WhiteboardObject? {
-        if (whiteboardService
-            .getWhiteboardByIdAndUserEmail(whiteboardObject.whiteboard.id, userEmail) == null) {
-            return null
-        }
-        return whiteboardObjectRepository.save(whiteboardObject)
+    fun createWhiteboardObject(whiteboardObject: WhiteboardObjectDTO, userEmail: String): WhiteboardObject? {
+        val whiteboard =
+            whiteboardService.getWhiteboardByIdAndUserEmail(whiteboardObject.whiteboardId, userEmail)
+                ?: return null
+
+        val newWBObject = WhiteboardObject(
+            posX = whiteboardObject.posX,
+            posY = whiteboardObject.posY,
+            data = whiteboardObject.data,
+            whiteboard = whiteboard
+        )
+        return whiteboardObjectRepository.save(newWBObject)
     }
 
     fun updateWhiteboardObject(
         id: Long,
-        updatedWhiteboardObject: WhiteboardObject,
+        updatedWhiteboardObject: WhiteboardObjectDTO,
         userEmail: String
     ): WhiteboardObject? {
         if (objectOwnedByUser(id, userEmail)) {
             return null
         }
+
         return whiteboardObjectRepository.findById(id).map { existingWhiteboardObject ->
             val whiteboardObjectToUpdate = existingWhiteboardObject.copy(
                 posX = updatedWhiteboardObject.posX,
                 posY = updatedWhiteboardObject.posY,
                 data = updatedWhiteboardObject.data,
-                whiteboard = updatedWhiteboardObject.whiteboard
             )
             whiteboardObjectRepository.save(whiteboardObjectToUpdate)
         }.orElse(null)

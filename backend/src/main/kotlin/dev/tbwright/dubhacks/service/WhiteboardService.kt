@@ -1,5 +1,6 @@
 package dev.tbwright.dubhacks.service
 
+import dev.tbwright.dubhacks.dto.WhiteboardDTO
 import dev.tbwright.dubhacks.model.Whiteboard
 import dev.tbwright.dubhacks.repository.WhiteboardRepository
 import org.springframework.stereotype.Service
@@ -23,13 +24,13 @@ class WhiteboardService(
     }
 
     // Create a new whiteboard for a specific user
-    fun createWhiteboardForUser(whiteboard: Whiteboard, userEmail: String): Whiteboard {
-        val newWhiteboard = whiteboard.copy(owner = userService.getOrCreateUser(userEmail))
+    fun createWhiteboardForUser(whiteboard: WhiteboardDTO, userEmail: String): Whiteboard {
+        val newWhiteboard = Whiteboard(name = whiteboard.name, owner = userService.getOrCreateUser(userEmail))
         return whiteboardRepository.save(newWhiteboard)
     }
 
     // Update a whiteboard, only if it belongs to the user
-    fun updateWhiteboardForUser(id: Long, updatedWhiteboard: Whiteboard, userEmail: String): Whiteboard? {
+    fun updateWhiteboardForUser(id: Long, updatedWhiteboard: WhiteboardDTO, userEmail: String): Whiteboard? {
         val whiteboard = getWhiteboardByIdAndUserEmail(id, userEmail)
         return if (whiteboard != null) {
             val editedWhiteboard = whiteboard.copy(name = updatedWhiteboard.name)

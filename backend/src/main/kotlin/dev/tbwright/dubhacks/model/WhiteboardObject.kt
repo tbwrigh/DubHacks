@@ -1,5 +1,6 @@
 package dev.tbwright.dubhacks.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 
 @Entity
@@ -11,6 +12,7 @@ data class WhiteboardObject(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "whiteboard_id", nullable = false)
+    @JsonIgnore
     val whiteboard: Whiteboard, // Foreign key relationship with Whiteboard
 
     @Column(nullable = false)

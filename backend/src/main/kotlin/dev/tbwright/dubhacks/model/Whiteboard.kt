@@ -1,5 +1,6 @@
 package dev.tbwright.dubhacks.model
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
 
@@ -12,6 +13,7 @@ data class Whiteboard(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
+    @JsonIgnore
     val owner: User, // Foreign key relationship with User
 
     @NotBlank
