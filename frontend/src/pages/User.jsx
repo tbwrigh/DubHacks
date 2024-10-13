@@ -5,8 +5,8 @@ import WhiteboardObjectService from '../services/WhiteboardObjectService';
 import './User.css'; // We'll create this file for styling
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesome component
-import { faTrashAlt, faPencilAlt, faCheck, faTimes } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
-import { debounce } from 'lodash'; // Import debounce
+import { faTrashAlt, faPencilAlt, faCheck, faTimes, faCheckSquare } from '@fortawesome/free-solid-svg-icons'; // Import specific icons
+import { debounce, set } from 'lodash'; // Import debounce
 import Draggable from 'react-draggable'; // Import Draggable
 
 
@@ -17,7 +17,9 @@ const User = () => {
   const [editingWhiteboard, setEditingWhiteboard] = useState(null); // Track which whiteboard is being edited
   const [newWhiteboardName, setNewWhiteboardName] = useState(''); // New whiteboard name state
   const [selectedWhiteboard, setSelectedWhiteboard] = useState(null); // Selected whiteboard state
+  const [selectedWBObject, setSelectedWBObject] = useState(null); // Selected whiteboard object state
   const [squares, setSquares] = useState([]); // Track added squares
+  const [newSquareContent, setNewSquareContent] = useState(''); // Track which square is being edited
   const dialogRef = useRef(null); // Reference to the <dialog> element
 
   useEffect(() => {
@@ -129,7 +131,7 @@ const User = () => {
         const { createWhiteboardObject } = WhiteboardObjectService();
         try {
             let newSquare = await createWhiteboardObject(
-                { whiteboardId: selectedWhiteboard, posX: 0, posY: 0, data: JSON.stringify({width: 100, height: 100}) }, idToken);
+                { whiteboardId: selectedWhiteboard, posX: 0, posY: 0, data: JSON.stringify({width: 100, height: 100, content: ''}) }, idToken);
             newSquare.data = JSON.parse(newSquare.data);
             setSquares([...squares, newSquare]);
         } catch {
@@ -161,7 +163,7 @@ const User = () => {
 
       const handleResizeSquare = async (id, newWidth, newHeight) => {
         setSquares(
-            squares.map((square) => (square.id === id ? { ...square, data: {width: newWidth, height: newHeight} } : square))
+            squares.map((square) => (square.id === id ? { ...square, data: {width: newWidth, height: newHeight, content: square.data.content} } : square))
           );
         saveSquareResize(id, newWidth, newHeight, selectedWhiteboard, idToken);
       };
@@ -180,6 +182,37 @@ const User = () => {
                 } catch {
                     console.error('Failed to update square position');
                 }
+            }
+        }
+
+        const handleSelectObj = async (id) => {
+            if (id == selectedWBObject) {
+                return;
+            }
+            let square = squares.find((square) => square.id === id);
+            if (square && square.data.content) {
+                setNewSquareContent(square.data.content)
+            }else {
+                setNewSquareContent('');
+            }
+            setSelectedWBObject(id);
+        }
+
+        const handleSaveSquareContent = async (id) => {
+            setSelectedWBObject(null);
+            let square = squares.find((square) => square.id === id);
+            square.data.content = newSquareContent;
+            setNewSquareContent('');
+
+            const { updateWhiteboardObject } = WhiteboardObjectService();
+            try {
+                await updateWhiteboardObject(
+                    id,
+                    { whiteboardId: selectedWhiteboard, posX: square.posX, posY: square.posY, data: JSON.stringify(square.data) },
+                    idToken
+                );
+            } catch {
+                console.error('Failed to update square content');
             }
         }
 
@@ -259,9 +292,37 @@ const User = () => {
                     position={{ x: square.posX, y: square.posY }}
                     >
                         <div
-                        className="draggable-square"
+                        className={`draggable-square ${square.id === selectedWBObject ? 'selectedWB' : ''}`}
                         style={{ width: `${square.data.width}px`, height: `${square.data.height}px` }}
+                        onClick={()=>{handleSelectObj(square.id)}}
                         >
+                            {square.id === selectedWBObject ? (
+                                <div className='squareContainer'>
+                                <FontAwesomeIcon 
+                                icon={faCheck} 
+                                className="save-icon save-wbobj" 
+                                onClick={() => handleSaveSquareContent(square.id)}
+                              />
+                                <textarea
+                                value={newSquareContent}
+                                onChange={(e) => setNewSquareContent(e.target.value)}
+                                onBlur={async () => {
+                                    const { updateWhiteboardObject } = WhiteboardObjectService();
+                                    try {
+                                        await updateWhiteboardObject(
+                                            square.id,
+                                            { whiteboardId: selectedWhiteboard, posX: square.posX, posY: square.posY, data: JSON.stringify({ ...square.data, content: newSquareContent }) },
+                                            idToken
+                                        );
+                                    } catch {
+                                        console.error('Failed to update square content');
+                                    }
+                                }}
+                                />
+                                </div>
+                            ) : (
+                                <p className='contentspace'>{square.data.content}</p>
+                            )}
                         <div
                             className="resize-handle"
                             onMouseDown={(e) => {
@@ -276,6 +337,7 @@ const User = () => {
                             };
 
                             const handleMouseUp = () => {
+                                // set time out to prevent click event from firing
                                 window.removeEventListener('mousemove', handleMouseMove);
                                 window.removeEventListener('mouseup', handleMouseUp);
                             };

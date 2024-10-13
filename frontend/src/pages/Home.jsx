@@ -7,14 +7,14 @@ const Home = () => {
   return (
     <div className="home">
       <header className="top-bar">
-        <div className="brand">notey</div>
+        <div className="brand">PolyNote</div>
         <div className="auth-buttons">
           <button onClick={() => loginWithRedirect()}>Log In</button>
         </div>
       </header>
       <main className="home-content">
-        <h1>Welcome to notey!</h1>
-        <p>This is a simple app to manage your notes and tasks.</p>
+        <h1>Welcome to PolyNote!</h1>
+        <p>This is a simple app to manage your notes.</p>
         <p>Log in to start using the app.</p>
       </main>
     </div>

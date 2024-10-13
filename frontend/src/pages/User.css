@@ -160,6 +160,12 @@
     align-items: center;
     user-select: none;
   }
+
+  .selectedWB {
+    border: 2px solid #28a745;
+    background-color: lightgreen;
+
+  }
   
   .resize-handle {
     position: absolute;
@@ -171,3 +177,53 @@
     cursor: se-resize;
   }
   
+  .save-wbobj {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    color: white;
+    font-size: 24px;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px !important;
+    z-index: 1000; /* Ensure the + button is always on top */
+  }
+  
+  .contentspace {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+
+    height: 50%;
+    width: 90%;
+    max-width: 90%;
+    max-height: 50%;
+    overflow-y: scroll;
+
+    padding: 20px;
+  }
+
+  .squareContainer {
+    display: flex;
+    flex-direction: column;
+    height: 80%; /* Full viewport height */
+    width: 80%; /* Full viewport width */
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+
+}
+
+textarea {
+  flex-grow: 1; /* Take up available space */
+  width: 100%; /* Full width of the container */
+  resize: none; /* Prevent manual resizing */
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
